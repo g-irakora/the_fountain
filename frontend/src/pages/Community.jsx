@@ -2,19 +2,20 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { INITIAL_POSTS } from '../data/mockData';
+import { IconHeart, IconMessage, IconStar, IconLightbulb, IconHelpCircle } from '../components/Icons';
 
 const CATEGORY_META = {
-  all:           { label: 'All Posts',       icon: '💬', color: '#4a4a6a' },
-  success_story: { label: 'Success Stories', icon: '🌟', color: '#E8621A' },
-  tip:           { label: 'Tips & Advice',   icon: '💡', color: '#2D6A4F' },
-  question:      { label: 'Questions',       icon: '❓', color: '#1a73e8' },
+  all:           { label: 'All Posts',       color: '#4a4a6a' },
+  success_story: { label: 'Success Stories', color: '#E8621A' },
+  tip:           { label: 'Tips & Advice',   color: '#2D6A4F' },
+  question:      { label: 'Questions',       color: '#1a73e8' },
 };
 
 const ROLE_COLORS = { youth: '#E8621A', mentor: '#2D6A4F', entrepreneur: '#1a73e8', admin: '#9b59b6' };
 
 function PostCard({ post, currentUser, onLike, onComment }) {
   const [showComments, setShowComments] = useState(false);
-  const [comment, setComment] = useState('');
+  const [comment, setComment]           = useState('');
   const meta = CATEGORY_META[post.category] || CATEGORY_META.tip;
 
   const submitComment = (e) => {
@@ -23,6 +24,12 @@ function PostCard({ post, currentUser, onLike, onComment }) {
     onComment(post.id, comment);
     setComment('');
   };
+
+  const CategoryIcon = post.category === 'success_story'
+    ? IconStar
+    : post.category === 'tip'
+    ? IconLightbulb
+    : IconHelpCircle;
 
   return (
     <div className="card" style={{ marginBottom: '16px' }}>
@@ -44,16 +51,17 @@ function PostCard({ post, currentUser, onLike, onComment }) {
             </div>
           </div>
         </div>
-        <span style={{ fontSize: '0.78rem', color: meta.color, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          {meta.icon} {meta.label}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: meta.color, fontWeight: '600' }}>
+          <CategoryIcon size={14} color={meta.color} />
+          {meta.label}
+        </div>
       </div>
 
       {/* Content */}
       <p style={{ fontSize: '0.92rem', color: '#1A1A2E', lineHeight: '1.7', marginBottom: '14px' }}>{post.content}</p>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #e8e8f0' }}>
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #e8e8f0' }}>
         <button
           onClick={() => onLike(post.id)}
           style={{
@@ -63,16 +71,18 @@ function PostCard({ post, currentUser, onLike, onComment }) {
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
             fontSize: '0.85rem', fontWeight: '600',
             color: post.liked ? '#E8621A' : '#4a4a6a',
-            transition: 'all 0.2s'
+            transition: 'all 0.2s',
           }}
         >
-          {post.liked ? '❤️' : '🤍'} {post.likes}
+          <IconHeart size={14} color={post.liked ? '#E8621A' : '#4a4a6a'} filled={post.liked} />
+          {post.likes}
         </button>
         <button
           onClick={() => setShowComments(!showComments)}
           style={{ background: 'transparent', border: '1px solid #e8e8f0', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontSize: '0.85rem', color: '#4a4a6a', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}
         >
-          💬 {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
+          <IconMessage size={14} color="#4a4a6a" />
+          {post.comments.length} {post.comments.length === 1 ? 'Comment' : 'Comments'}
         </button>
       </div>
 
@@ -93,7 +103,6 @@ function PostCard({ post, currentUser, onLike, onComment }) {
               </div>
             </div>
           ))}
-          {/* Add comment */}
           <form onSubmit={submitComment} style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
             <div className="avatar avatar-sm" style={{ background: ROLE_COLORS[currentUser?.role] || '#E8621A', flexShrink: 0 }}>
               {currentUser?.avatar}
@@ -103,7 +112,7 @@ function PostCard({ post, currentUser, onLike, onComment }) {
                 className="form-control"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Write a comment…"
+                placeholder="Write a comment..."
                 style={{ flex: 1 }}
               />
               <button type="submit" className="btn btn-primary btn-sm">Post</button>
@@ -117,8 +126,8 @@ function PostCard({ post, currentUser, onLike, onComment }) {
 
 export default function Community() {
   const { user } = useAuth();
-  const [posts, setPosts] = useState(INITIAL_POSTS);
-  const [filter, setFilter] = useState('all');
+  const [posts, setPosts]       = useState(INITIAL_POSTS);
+  const [filter, setFilter]     = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [postForm, setPostForm] = useState({ content: '', category: 'tip' });
 
@@ -142,37 +151,40 @@ export default function Community() {
     setShowModal(false);
   };
 
-  const likePost = (postId) => {
+  const likePost = (postId) =>
     setPosts(posts.map((p) =>
-      p.id === postId
-        ? { ...p, likes: p.liked ? p.likes - 1 : p.likes + 1, liked: !p.liked }
-        : p
+      p.id === postId ? { ...p, likes: p.liked ? p.likes - 1 : p.likes + 1, liked: !p.liked } : p
     ));
-  };
 
   const addComment = (postId, content) => {
-    const newComment = {
-      id: Date.now(),
-      author: user.name,
-      avatar: user.avatar,
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    setPosts(posts.map((p) =>
-      p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p
-    ));
+    const newComment = { id: Date.now(), author: user.name, avatar: user.avatar, content, createdAt: new Date().toISOString() };
+    setPosts(posts.map((p) => p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p));
   };
 
-  const filtered = filter === 'all' ? posts : posts.filter((p) => p.category === filter);
-  const totalLikes = posts.reduce((s, p) => s + p.likes, 0);
+  const filtered    = filter === 'all' ? posts : posts.filter((p) => p.category === filter);
+  const totalLikes  = posts.reduce((s, p) => s + p.likes, 0);
+
+  const statItems = [
+    { value: posts.length,                                               label: 'Total Posts',     color: '#1A1A2E' },
+    { value: posts.filter((p) => p.category === 'success_story').length, label: 'Success Stories', color: '#E8621A' },
+    { value: posts.filter((p) => p.category === 'tip').length,           label: 'Tips Shared',     color: '#2D6A4F' },
+    { value: totalLikes,                                                  label: 'Total Likes',     color: '#1a73e8' },
+  ];
+
+  const POST_TYPES = [
+    { value: 'success_story', label: 'Success Story', Icon: IconStar        },
+    { value: 'tip',           label: 'Tip / Advice',  Icon: IconLightbulb   },
+    { value: 'question',      label: 'Question',      Icon: IconHelpCircle  },
+  ];
 
   return (
     <div className="app-shell">
       <Sidebar />
       <main className="main-content">
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
           <div>
-            <h1 style={{ fontSize: '1.8rem' }}>Community 💬</h1>
+            <h1 style={{ fontSize: '1.8rem' }}>Community</h1>
             <p style={{ color: '#8888aa', marginTop: '4px' }}>Share your journey, inspire others, and learn together.</p>
           </div>
           <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Share Post</button>
@@ -180,15 +192,15 @@ export default function Community() {
 
         {/* Stats */}
         <div className="stats-grid" style={{ marginBottom: '24px' }}>
-          {[
-            { icon: '💬', value: posts.length, label: 'Total Posts' },
-            { icon: '🌟', value: posts.filter((p) => p.category === 'success_story').length, label: 'Success Stories' },
-            { icon: '💡', value: posts.filter((p) => p.category === 'tip').length, label: 'Tips Shared' },
-            { icon: '❤️', value: totalLikes, label: 'Total Likes' },
-          ].map((s) => (
+          {statItems.map((s) => (
             <div className="stat-card" key={s.label}>
-              <div className="stat-icon">{s.icon}</div>
-              <div className="stat-info"><p>{s.value}</p><p>{s.label}</p></div>
+              <div className="stat-icon" style={{ background: `${s.color}12`, border: `1px solid ${s.color}28` }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.color }} />
+              </div>
+              <div className="stat-info">
+                <p style={{ color: s.color }}>{s.value}</p>
+                <p>{s.label}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -197,7 +209,7 @@ export default function Community() {
         <div className="filter-bar">
           {Object.entries(CATEGORY_META).map(([key, meta]) => (
             <button key={key} className={`filter-tag ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>
-              {meta.icon} {meta.label}
+              {meta.label}
             </button>
           ))}
         </div>
@@ -205,7 +217,9 @@ export default function Community() {
         {/* Posts */}
         {filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">💬</div>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#e8f0fe', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <IconMessage size={20} color="#1a73e8" />
+            </div>
             <h3>No posts yet</h3>
             <p>Be the first to share something with the community.</p>
             <button className="btn btn-primary" onClick={() => setShowModal(true)}>Share Your Story</button>
@@ -237,24 +251,22 @@ export default function Community() {
               <form onSubmit={createPost}>
                 <div className="form-group">
                   <label>Post Type</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '4px' }}>
-                    {[
-                      { value: 'success_story', icon: '🌟', label: 'Success Story' },
-                      { value: 'tip',           icon: '💡', label: 'Tip / Advice' },
-                      { value: 'question',      icon: '❓', label: 'Question' },
-                    ].map((t) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                    {POST_TYPES.map(({ value, label, Icon }) => (
                       <div
-                        key={t.value}
-                        onClick={() => setPostForm({ ...postForm, category: t.value })}
+                        key={value}
+                        onClick={() => setPostForm({ ...postForm, category: value })}
                         style={{
-                          border: `2px solid ${postForm.category === t.value ? '#E8621A' : '#e8e8f0'}`,
-                          borderRadius: '10px', padding: '10px 8px', textAlign: 'center',
-                          cursor: 'pointer', background: postForm.category === t.value ? '#fff8f3' : '#fff',
-                          transition: 'all 0.2s'
+                          border: `2px solid ${postForm.category === value ? '#E8621A' : '#e8e8f0'}`,
+                          borderRadius: '10px', padding: '12px 8px', textAlign: 'center',
+                          cursor: 'pointer', background: postForm.category === value ? '#fff8f3' : '#fff',
+                          transition: 'all 0.2s',
                         }}
                       >
-                        <div style={{ fontSize: '1.3rem' }}>{t.icon}</div>
-                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: postForm.category === t.value ? '#E8621A' : '#4a4a6a', marginTop: '4px' }}>{t.label}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
+                          <Icon size={18} color={postForm.category === value ? '#E8621A' : '#8888aa'} />
+                        </div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: postForm.category === value ? '#E8621A' : '#4a4a6a' }}>{label}</div>
                       </div>
                     ))}
                   </div>
@@ -266,11 +278,9 @@ export default function Community() {
                     value={postForm.content}
                     onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
                     placeholder={
-                      postForm.category === 'success_story'
-                        ? 'Share a win, milestone, or breakthrough you had…'
-                        : postForm.category === 'tip'
-                        ? 'Share a practical tip that others can benefit from…'
-                        : 'Ask a question the community can help you answer…'
+                      postForm.category === 'success_story' ? 'Share a win, milestone, or breakthrough...'
+                      : postForm.category === 'tip'         ? 'Share a practical tip others can benefit from...'
+                      : 'Ask a question the community can help answer...'
                     }
                     rows={5}
                     required
@@ -284,6 +294,7 @@ export default function Community() {
             </div>
           </div>
         )}
+
       </main>
     </div>
   );

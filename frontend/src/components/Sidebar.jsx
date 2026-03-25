@@ -1,13 +1,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  IconDashboard, IconTarget, IconChart,
+  IconUsers, IconMessage, IconLogout,
+} from './Icons';
 
 const NAV_ITEMS = [
-  { path: '/dashboard',   label: 'Dashboard',       icon: '🏠' },
-  { path: '/goals',       label: 'My Goals',         icon: '🎯' },
-  { path: '/business',    label: 'Business Plan',    icon: '📊' },
-  { path: '/mentorship',  label: 'Mentorship',       icon: '🤝' },
-  { path: '/community',   label: 'Community',        icon: '💬' },
+  { path: '/dashboard',  label: 'Dashboard',     Icon: IconDashboard },
+  { path: '/goals',      label: 'My Goals',      Icon: IconTarget    },
+  { path: '/business',   label: 'Business Plan', Icon: IconChart     },
+  { path: '/mentorship', label: 'Mentorship',    Icon: IconUsers     },
+  { path: '/community',  label: 'Community',     Icon: IconMessage   },
 ];
 
 export default function Sidebar() {
@@ -23,13 +27,13 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <h2>⛲ FOUNTAIN</h2>
+        <h2>FOUNTAIN</h2>
         <p>Empowering African Youth</p>
       </div>
 
       <div className="sidebar-user">
         <div className="avatar" style={{ background: '#E8621A' }}>
-          {user?.avatar || user?.name?.slice(0, 2).toUpperCase()}
+          {user?.name?.slice(0, 2).toUpperCase()}
         </div>
         <div className="user-info">
           <p>{user?.name}</p>
@@ -38,20 +42,27 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.map(({ path, label, Icon }) => (
           <button
-            key={item.path}
-            className={`nav-item ${pathname === item.path ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
+            key={path}
+            className={`nav-item ${pathname === path ? 'active' : ''}`}
+            onClick={() => navigate(path)}
           >
-            <span className="icon">{item.icon}</span>
-            {item.label}
+            <span className="icon">
+              <Icon size={16} color="currentColor" />
+            </span>
+            {label}
           </button>
         ))}
       </nav>
 
       <div className="sidebar-logout">
-        <button onClick={handleLogout}>↩ Sign Out</button>
+        <button onClick={handleLogout}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+            <IconLogout size={15} color="currentColor" />
+            Sign Out
+          </span>
+        </button>
       </div>
     </aside>
   );

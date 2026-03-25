@@ -3,61 +3,73 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardStats, RECENT_ACTIVITY, INITIAL_GOALS } from '../data/mockData';
+import {
+  IconTarget, IconChart, IconUsers, IconMessage,
+  IconCheckCircle, IconActivity, IconBuilding,
+  IconStar, IconInbox, IconFlag,
+} from '../components/Icons';
 
 const QUICK_ACTIONS = {
   youth: [
-    { label: 'Set a New Goal', icon: '🎯', path: '/goals' },
-    { label: 'Build Business Plan', icon: '📊', path: '/business' },
-    { label: 'Find a Mentor', icon: '🤝', path: '/mentorship' },
-    { label: 'Join the Community', icon: '💬', path: '/community' },
+    { label: 'Set a New Goal',      Icon: IconTarget,       path: '/goals'      },
+    { label: 'Build Business Plan', Icon: IconChart,        path: '/business'   },
+    { label: 'Find a Mentor',       Icon: IconUsers,        path: '/mentorship' },
+    { label: 'Join the Community',  Icon: IconMessage,      path: '/community'  },
   ],
   mentor: [
-    { label: 'View Requests', icon: '📬', path: '/mentorship' },
-    { label: 'Share a Tip', icon: '💡', path: '/community' },
-    { label: 'Community Feed', icon: '💬', path: '/community' },
-    { label: 'My Goals', icon: '🎯', path: '/goals' },
+    { label: 'View Requests',    Icon: IconInbox,   path: '/mentorship' },
+    { label: 'Share a Tip',      Icon: IconActivity, path: '/community'  },
+    { label: 'Community Feed',   Icon: IconMessage,  path: '/community'  },
+    { label: 'My Goals',         Icon: IconTarget,   path: '/goals'      },
   ],
   entrepreneur: [
-    { label: 'My Businesses', icon: '🏢', path: '/business' },
-    { label: 'Share Story', icon: '🌟', path: '/community' },
-    { label: 'Set a Goal', icon: '🎯', path: '/goals' },
-    { label: 'Mentorship', icon: '🤝', path: '/mentorship' },
+    { label: 'My Businesses', Icon: IconBuilding, path: '/business'   },
+    { label: 'Share Story',   Icon: IconStar,     path: '/community'  },
+    { label: 'Set a Goal',    Icon: IconTarget,   path: '/goals'      },
+    { label: 'Mentorship',    Icon: IconUsers,    path: '/mentorship' },
   ],
   admin: [
-    { label: 'Community', icon: '💬', path: '/community' },
-    { label: 'Mentorship', icon: '🤝', path: '/mentorship' },
-    { label: 'Goals', icon: '🎯', path: '/goals' },
-    { label: 'Business Plans', icon: '📊', path: '/business' },
+    { label: 'Community',     Icon: IconMessage,  path: '/community'  },
+    { label: 'Mentorship',    Icon: IconUsers,    path: '/mentorship' },
+    { label: 'Goals',         Icon: IconTarget,   path: '/goals'      },
+    { label: 'Business Plans',Icon: IconChart,    path: '/business'   },
   ],
 };
 
 const GREETING_MESSAGES = {
-  youth: 'Ready to take the next step toward your goals today?',
-  mentor: 'Your guidance is changing lives. Thank you for being a fountain.',
-  entrepreneur: 'Every business you build creates opportunities for others.',
-  admin: 'Platform overview at a glance.',
+  youth:        'Ready to take the next step toward your goals?',
+  mentor:       'Your guidance is creating real impact.',
+  entrepreneur: 'Every business you build opens doors for others.',
+  admin:        'Platform overview.',
+};
+
+const ACTIVITY_COLORS = {
+  milestone:  '#27ae60',
+  comment:    '#1a73e8',
+  mentorship: '#2D6A4F',
+  finance:    '#E8621A',
+  goal:       '#9b59b6',
 };
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const stats = getDashboardStats(user?.role);
+  const stats   = getDashboardStats(user?.role);
   const actions = QUICK_ACTIONS[user?.role] || QUICK_ACTIONS.youth;
 
-  // Goal progress for youth
-  const activeGoals = INITIAL_GOALS.filter((g) => g.status === 'active');
-  const totalMilestones = activeGoals.flatMap((g) => g.milestones).length;
-  const doneMilestones  = activeGoals.flatMap((g) => g.milestones).filter((m) => m.isCompleted).length;
-  const overallProgress = totalMilestones > 0 ? Math.round((doneMilestones / totalMilestones) * 100) : 0;
+  const activeGoals      = INITIAL_GOALS.filter((g) => g.status === 'active');
+  const totalMilestones  = activeGoals.flatMap((g) => g.milestones).length;
+  const doneMilestones   = activeGoals.flatMap((g) => g.milestones).filter((m) => m.isCompleted).length;
+  const overallProgress  = totalMilestones > 0 ? Math.round((doneMilestones / totalMilestones) * 100) : 0;
 
   return (
     <div className="app-shell">
       <Sidebar />
       <main className="main-content">
-        {/* Header */}
+
         <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '1.8rem', marginBottom: '4px' }}>
-            Hello, {user?.name?.split(' ')[0]} 👋
+            Hello, {user?.name?.split(' ')[0]}
           </h1>
           <p style={{ color: '#8888aa', fontSize: '0.95rem' }}>
             {GREETING_MESSAGES[user?.role]}
@@ -68,9 +80,20 @@ export default function Dashboard() {
         <div className="stats-grid">
           {Object.values(stats).map((s) => (
             <div className="stat-card" key={s.label}>
-              <div className="stat-icon">{s.icon}</div>
+              <div
+                className="stat-icon"
+                style={{
+                  background: `${s.color}14`,
+                  border: `1px solid ${s.color}30`,
+                }}
+              >
+                <div style={{
+                  width: 10, height: 10, borderRadius: '50%',
+                  background: s.color,
+                }} />
+              </div>
               <div className="stat-info">
-                <p>{s.value}</p>
+                <p style={{ color: s.color }}>{s.value}</p>
                 <p>{s.label}</p>
               </div>
             </div>
@@ -82,30 +105,39 @@ export default function Dashboard() {
           <div className="card">
             <h3 style={{ marginBottom: '16px', fontSize: '1rem' }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {actions.map((a) => (
+              {actions.map(({ label, Icon, path }) => (
                 <button
-                  key={a.label}
-                  onClick={() => navigate(a.path)}
+                  key={label}
+                  onClick={() => navigate(path)}
                   style={{
-                    padding: '14px', border: '1.5px solid #e8e8f0', borderRadius: '10px',
-                    background: '#fff', cursor: 'pointer', textAlign: 'left',
-                    transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '10px',
-                    fontSize: '0.85rem', fontWeight: '600', color: '#4a4a6a',
+                    padding: '14px 12px',
+                    border: '1.5px solid #e8e8f0',
+                    borderRadius: '10px',
+                    background: '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    color: '#4a4a6a',
                   }}
-                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#E8621A'; e.currentTarget.style.background = '#fff8f3'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e8e8f0'; e.currentTarget.style.background = '#fff'; }}
+                  onMouseOver={(e) => { e.currentTarget.style.borderColor = '#E8621A'; e.currentTarget.style.background = '#fff8f3'; e.currentTarget.style.color = '#E8621A'; }}
+                  onMouseOut={(e)  => { e.currentTarget.style.borderColor = '#e8e8f0'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#4a4a6a'; }}
                 >
-                  <span style={{ fontSize: '1.3rem' }}>{a.icon}</span>
-                  {a.label}
+                  <Icon size={16} color="currentColor" />
+                  {label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Progress (youth) or Profile card */}
+          {/* Progress or Profile */}
           {user?.role === 'youth' ? (
             <div className="card">
-              <h3 style={{ marginBottom: '16px', fontSize: '1rem' }}>Goal Progress Overview</h3>
+              <h3 style={{ marginBottom: '16px', fontSize: '1rem' }}>Goal Progress</h3>
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ fontSize: '0.87rem', color: '#4a4a6a' }}>Overall completion</span>
@@ -116,41 +148,54 @@ export default function Dashboard() {
                 </div>
               </div>
               {activeGoals.map((g) => {
-                const done = g.milestones.filter((m) => m.isCompleted).length;
+                const done  = g.milestones.filter((m) => m.isCompleted).length;
                 const total = g.milestones.length;
-                const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
                 const catColors = { business: '#E8621A', education: '#1a73e8', finance: '#27ae60', personal: '#9b59b6' };
+                const c = catColors[g.category] || '#E8621A';
                 return (
                   <div key={g.id} style={{ marginBottom: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
                       <span style={{ fontSize: '0.82rem', fontWeight: '600', color: '#1A1A2E' }}>{g.title}</span>
-                      <span style={{ fontSize: '0.78rem', color: catColors[g.category] || '#E8621A' }}>{done}/{total}</span>
+                      <span style={{ fontSize: '0.78rem', color: c }}>{done}/{total}</span>
                     </div>
                     <div className="progress-wrap" style={{ height: '5px' }}>
-                      <div className="progress-bar" style={{ width: `${pct}%`, background: catColors[g.category] || '#E8621A' }} />
+                      <div className="progress-bar" style={{ width: `${pct}%`, background: c }} />
                     </div>
                   </div>
                 );
               })}
-              <button className="btn btn-outline btn-sm" style={{ marginTop: '12px', width: '100%' }} onClick={() => navigate('/goals')}>
-                Manage Goals →
+              <button
+                className="btn btn-outline btn-sm"
+                style={{ marginTop: '12px', width: '100%' }}
+                onClick={() => navigate('/goals')}
+              >
+                Manage Goals
               </button>
             </div>
           ) : (
             <div className="card">
               <h3 style={{ marginBottom: '16px', fontSize: '1rem' }}>Your Profile</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                <div className="avatar avatar-lg" style={{ background: user?.role === 'mentor' ? '#2D6A4F' : '#1a73e8' }}>
-                  {user?.avatar}
+                <div
+                  className="avatar avatar-lg"
+                  style={{ background: user?.role === 'mentor' ? '#2D6A4F' : '#1a73e8' }}
+                >
+                  {user?.name?.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <p style={{ fontWeight: '700', fontFamily: 'Poppins, sans-serif' }}>{user?.name}</p>
-                  <span className={`badge badge-${user?.role === 'mentor' ? 'secondary' : 'blue'}`} style={{ textTransform: 'capitalize' }}>{user?.role}</span>
+                  <span
+                    className={`badge badge-${user?.role === 'mentor' ? 'secondary' : 'blue'}`}
+                    style={{ textTransform: 'capitalize' }}
+                  >
+                    {user?.role}
+                  </span>
                 </div>
               </div>
-              <p style={{ fontSize: '0.85rem', color: '#4a4a6a', marginBottom: '8px' }}>{user?.bio}</p>
-              <p style={{ fontSize: '0.82rem', color: '#8888aa' }}>📍 {user?.location}</p>
-              <p style={{ fontSize: '0.82rem', color: '#8888aa', marginTop: '4px' }}>🛠 {user?.skills}</p>
+              <p style={{ fontSize: '0.85rem', color: '#4a4a6a', marginBottom: '10px' }}>{user?.bio}</p>
+              <p style={{ fontSize: '0.82rem', color: '#8888aa' }}>{user?.location}</p>
+              <p style={{ fontSize: '0.82rem', color: '#8888aa', marginTop: '4px' }}>{user?.skills}</p>
             </div>
           )}
         </div>
@@ -158,16 +203,22 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div className="card">
           <h3 style={{ marginBottom: '16px', fontSize: '1rem' }}>Recent Activity</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {RECENT_ACTIVITY.map((a, i) => (
-              <div key={a.id} style={{
-                display: 'flex', alignItems: 'center', gap: '14px',
-                padding: '12px 0',
-                borderBottom: i < RECENT_ACTIVITY.length - 1 ? '1px solid #e8e8f0' : 'none'
-              }}>
-                <div style={{ fontSize: '1.2rem', width: '32px', height: '32px', background: '#fff8f3', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {a.icon}
-                </div>
+              <div
+                key={a.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 0',
+                  borderBottom: i < RECENT_ACTIVITY.length - 1 ? '1px solid #e8e8f0' : 'none',
+                }}
+              >
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                  background: ACTIVITY_COLORS[a.type] || '#E8621A',
+                }} />
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: '0.87rem', color: '#1A1A2E' }}>{a.text}</p>
                 </div>
@@ -176,6 +227,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+
       </main>
     </div>
   );

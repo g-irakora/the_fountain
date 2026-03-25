@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { INITIAL_BUSINESS_PLANS } from '../data/mockData';
+import { IconTrendingUp, IconTrendingDown, IconDollar } from '../components/Icons';
 
 const INDUSTRIES = ['Agriculture', 'Technology', 'Retail', 'Education', 'Health', 'Services', 'Manufacturing', 'Finance'];
 
 function FinancialSummary({ financials }) {
-  const income   = financials.filter((f) => f.type === 'income').reduce((s, f) => s + f.amount, 0);
+  const income   = financials.filter((f) => f.type === 'income').reduce((s, f)  => s + f.amount, 0);
   const expenses = financials.filter((f) => f.type === 'expense').reduce((s, f) => s + f.amount, 0);
   const profit   = income - expenses;
+
+  const items = [
+    { label: 'Total Income',   value: income,   color: '#27ae60', Icon: IconTrendingUp   },
+    { label: 'Total Expenses', value: expenses,  color: '#e74c3c', Icon: IconTrendingDown },
+    { label: 'Net Profit',     value: profit,    color: profit >= 0 ? '#27ae60' : '#e74c3c', Icon: IconDollar },
+  ];
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-      {[
-        { label: 'Total Income', value: income, color: '#27ae60', icon: '📈' },
-        { label: 'Total Expenses', value: expenses, color: '#e74c3c', icon: '📉' },
-        { label: 'Net Profit', value: profit, color: profit >= 0 ? '#27ae60' : '#e74c3c', icon: '💰' },
-      ].map((s) => (
-        <div key={s.label} style={{ padding: '14px', background: '#fafaf7', borderRadius: '10px', textAlign: 'center' }}>
-          <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{s.icon}</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: '700', color: s.color, fontFamily: 'Poppins, sans-serif' }}>
+      {items.map((s) => (
+        <div key={s.label} style={{ padding: '14px', background: '#fafaf7', borderRadius: '10px', textAlign: 'center', border: `1px solid ${s.color}20` }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '6px' }}>
+            <s.Icon size={16} color={s.color} />
+          </div>
+          <div style={{ fontSize: '1.15rem', fontWeight: '700', color: s.color, fontFamily: 'Poppins, sans-serif' }}>
             ${s.value.toFixed(2)}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#8888aa' }}>{s.label}</div>
+          <div style={{ fontSize: '0.75rem', color: '#8888aa', marginTop: '2px' }}>{s.label}</div>
         </div>
       ))}
     </div>
@@ -28,30 +34,19 @@ function FinancialSummary({ financials }) {
 }
 
 export default function BusinessPlan() {
-  const [plans, setPlans] = useState(INITIAL_BUSINESS_PLANS);
+  const [plans, setPlans]           = useState(INITIAL_BUSINESS_PLANS);
   const [activePlan, setActivePlan] = useState(INITIAL_BUSINESS_PLANS[0]);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [showFinModal, setShowFinModal] = useState(false);
+  const [showFinModal,  setShowFinModal]  = useState(false);
   const [planForm, setPlanForm] = useState({ businessName: '', description: '', industry: 'Agriculture', targetMarket: '', revenueModel: '' });
-  const [finForm, setFinForm] = useState({ type: 'income', amount: '', category: 'Sales', description: '', date: '' });
+  const [finForm,  setFinForm]  = useState({ type: 'income', amount: '', category: 'Sales', description: '', date: '' });
 
   const handleP = (e) => setPlanForm({ ...planForm, [e.target.name]: e.target.value });
-  const handleF = (e) => setFinForm({ ...finForm, [e.target.name]: e.target.value });
+  const handleF = (e) => setFinForm({ ...finForm,   [e.target.name]: e.target.value });
 
   const addPlan = (e) => {
     e.preventDefault();
-    const newPlan = {
-      id: Date.now(),
-      userId: 1,
-      businessName: planForm.businessName,
-      description: planForm.description,
-      industry: planForm.industry,
-      targetMarket: planForm.targetMarket,
-      revenueModel: planForm.revenueModel,
-      status: 'draft',
-      createdAt: new Date().toISOString().split('T')[0],
-      financials: [],
-    };
+    const newPlan = { id: Date.now(), userId: 1, ...planForm, status: 'draft', createdAt: new Date().toISOString().split('T')[0], financials: [] };
     const updated = [newPlan, ...plans];
     setPlans(updated);
     setActivePlan(newPlan);
@@ -61,7 +56,7 @@ export default function BusinessPlan() {
 
   const addFinancial = (e) => {
     e.preventDefault();
-    const record = { id: Date.now(), type: finForm.type, amount: parseFloat(finForm.amount), category: finForm.category, description: finForm.description, date: finForm.date };
+    const record  = { id: Date.now(), type: finForm.type, amount: parseFloat(finForm.amount), category: finForm.category, description: finForm.description, date: finForm.date };
     const updated = plans.map((p) => p.id === activePlan.id ? { ...p, financials: [...p.financials, record] } : p);
     setPlans(updated);
     setActivePlan({ ...activePlan, financials: [...activePlan.financials, record] });
@@ -70,58 +65,72 @@ export default function BusinessPlan() {
   };
 
   const toggleStatus = (planId) => {
-    const updated = plans.map((p) => p.id === planId
-      ? { ...p, status: p.status === 'draft' ? 'active' : p.status === 'active' ? 'completed' : 'draft' }
-      : p
+    const updated = plans.map((p) =>
+      p.id === planId
+        ? { ...p, status: p.status === 'draft' ? 'active' : p.status === 'active' ? 'completed' : 'draft' }
+        : p
     );
     setPlans(updated);
-    if (activePlan?.id === planId) {
-      const p = updated.find((p) => p.id === planId);
-      setActivePlan(p);
-    }
+    if (activePlan?.id === planId) setActivePlan(updated.find((p) => p.id === planId));
   };
 
   const STATUS_BADGE = { draft: 'badge-warning', active: 'badge-primary', completed: 'badge-success' };
+
+  const planSections = activePlan ? [
+    { label: 'Description',   value: activePlan.description   },
+    { label: 'Industry',      value: activePlan.industry      },
+    { label: 'Target Market', value: activePlan.targetMarket  },
+    { label: 'Revenue Model', value: activePlan.revenueModel  },
+  ] : [];
 
   return (
     <div className="app-shell">
       <Sidebar />
       <main className="main-content">
+
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
           <div>
-            <h1 style={{ fontSize: '1.8rem' }}>Business Plans 📊</h1>
+            <h1 style={{ fontSize: '1.8rem' }}>Business Plans</h1>
             <p style={{ color: '#8888aa', marginTop: '4px' }}>Plan, track, and grow your business.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowPlanModal(true)}>+ New Business Plan</button>
+          <button className="btn btn-primary" onClick={() => setShowPlanModal(true)}>+ New Plan</button>
         </div>
 
         {plans.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📊</div>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: '#fff2eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <IconTrendingUp size={20} color="#E8621A" />
+            </div>
             <h3>No business plans yet</h3>
-            <p>Start planning your first business. Every great business starts with a plan.</p>
+            <p>Every great business starts with a plan.</p>
             <button className="btn btn-primary" onClick={() => setShowPlanModal(true)}>Create Your First Plan</button>
           </div>
         ) : (
           <div className="grid-2">
             {/* Plan list */}
             <div>
-              <h3 style={{ fontSize: '1rem', marginBottom: '14px' }}>My Plans ({plans.length})</h3>
+              <h3 style={{ fontSize: '1rem', marginBottom: '14px', color: '#4a4a6a', fontWeight: '600' }}>My Plans ({plans.length})</h3>
               {plans.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => setActivePlan(p)}
                   style={{
-                    padding: '16px', border: `2px solid ${activePlan?.id === p.id ? '#E8621A' : '#e8e8f0'}`,
-                    borderRadius: '10px', marginBottom: '12px', cursor: 'pointer',
-                    background: activePlan?.id === p.id ? '#fff8f3' : '#fff', transition: 'all 0.2s'
+                    padding: '16px',
+                    border: `2px solid ${activePlan?.id === p.id ? '#E8621A' : '#e8e8f0'}`,
+                    borderRadius: '10px',
+                    marginBottom: '12px',
+                    cursor: 'pointer',
+                    background: activePlan?.id === p.id ? '#fff8f3' : '#fff',
+                    transition: 'all 0.2s',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <h4 style={{ fontSize: '0.95rem' }}>{p.businessName}</h4>
                     <span className={`badge ${STATUS_BADGE[p.status]}`}>{p.status}</span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#4a4a6a', marginBottom: '6px' }}>{p.description?.slice(0, 80)}…</p>
+                  <p style={{ fontSize: '0.8rem', color: '#4a4a6a', marginBottom: '6px' }}>
+                    {p.description?.slice(0, 80)}{p.description?.length > 80 ? '…' : ''}
+                  </p>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <span className="badge badge-blue">{p.industry}</span>
                     <span style={{ fontSize: '0.75rem', color: '#8888aa' }}>{p.createdAt}</span>
@@ -136,22 +145,17 @@ export default function BusinessPlan() {
                 <div className="card" style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <div>
-                      <h2 style={{ fontSize: '1.2rem' }}>{activePlan.businessName}</h2>
-                      <span className={`badge ${STATUS_BADGE[activePlan.status]}`}>{activePlan.status}</span>
+                      <h2 style={{ fontSize: '1.15rem' }}>{activePlan.businessName}</h2>
+                      <span className={`badge ${STATUS_BADGE[activePlan.status]}`} style={{ marginTop: '4px', display: 'inline-block' }}>{activePlan.status}</span>
                     </div>
                     <button className="btn btn-ghost btn-sm" onClick={() => toggleStatus(activePlan.id)}>
                       Change Status
                     </button>
                   </div>
 
-                  {[
-                    { label: '📝 Description', value: activePlan.description },
-                    { label: '🏭 Industry', value: activePlan.industry },
-                    { label: '🎯 Target Market', value: activePlan.targetMarket },
-                    { label: '💡 Revenue Model', value: activePlan.revenueModel },
-                  ].map((row) => (
+                  {planSections.map((row) => (
                     <div key={row.label} style={{ marginBottom: '14px' }}>
-                      <p style={{ fontSize: '0.78rem', fontWeight: '700', color: '#8888aa', marginBottom: '4px' }}>{row.label}</p>
+                      <p style={{ fontSize: '0.75rem', fontWeight: '700', color: '#8888aa', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>{row.label}</p>
                       <p style={{ fontSize: '0.88rem', color: '#1A1A2E', lineHeight: '1.5' }}>{row.value || '—'}</p>
                     </div>
                   ))}
@@ -168,28 +172,29 @@ export default function BusinessPlan() {
 
                   {activePlan.financials.length === 0 ? (
                     <p style={{ textAlign: 'center', color: '#8888aa', fontSize: '0.85rem', padding: '16px' }}>
-                      No financial records yet. Start tracking income and expenses.
+                      No records yet. Start tracking income and expenses.
                     </p>
                   ) : (
-                    <div>
-                      {activePlan.financials.map((f) => (
-                        <div key={f.id} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '10px 0', borderBottom: '1px solid #e8e8f0'
-                        }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '1.1rem' }}>{f.type === 'income' ? '📈' : '📉'}</span>
-                            <div>
-                              <p style={{ fontSize: '0.85rem', fontWeight: '600' }}>{f.description}</p>
-                              <p style={{ fontSize: '0.75rem', color: '#8888aa' }}>{f.category} · {f.date}</p>
-                            </div>
+                    activePlan.financials.map((f) => (
+                      <div
+                        key={f.id}
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #e8e8f0' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {f.type === 'income'
+                            ? <IconTrendingUp size={15} color="#27ae60" />
+                            : <IconTrendingDown size={15} color="#e74c3c" />
+                          }
+                          <div>
+                            <p style={{ fontSize: '0.85rem', fontWeight: '600' }}>{f.description}</p>
+                            <p style={{ fontSize: '0.75rem', color: '#8888aa' }}>{f.category} · {f.date}</p>
                           </div>
-                          <span style={{ fontWeight: '700', color: f.type === 'income' ? '#27ae60' : '#e74c3c', fontFamily: 'Poppins, sans-serif' }}>
-                            {f.type === 'income' ? '+' : '-'}${f.amount.toFixed(2)}
-                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <span style={{ fontWeight: '700', color: f.type === 'income' ? '#27ae60' : '#e74c3c', fontFamily: 'Poppins, sans-serif' }}>
+                          {f.type === 'income' ? '+' : '-'}${f.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -279,6 +284,7 @@ export default function BusinessPlan() {
             </div>
           </div>
         )}
+
       </main>
     </div>
   );
